@@ -1,95 +1,95 @@
 #http://mp.weixin.qq.com/s/zCUlQDMYMVkysKAI9Dr-vQ
 library(readxl)
 library(GGally)
-# ¶ÁÈ¡Êı¾İ
+# è¯»å–æ•°æ®
 ccpp <- read_excel(path = file.choose())
 summary(ccpp)
-# »æÖÆ¸÷±äÁ¿Ö®¼äµÄÉ¢µãÍ¼ÓëÏà¹ØÏµÊı
+# ç»˜åˆ¶å„å˜é‡ä¹‹é—´çš„æ•£ç‚¹å›¾ä¸ç›¸å…³ç³»æ•°
 ggpairs(ccpp)
-# ½¨Ä£
+# å»ºæ¨¡
 fit <- lm(PE ~ AT + V + AP, data = ccpp)
 summary(fit)
-# ¼ÆËãÄ£ĞÍµÄRMSEÖµ
+# è®¡ç®—æ¨¡å‹çš„RMSEå€¼
 RMSE = sqrt(mean(fit$residuals**2))
 RMSE
-# ¶àÖØ¹²ÏßĞÔ¼ìÑé
+# å¤šé‡å…±çº¿æ€§æ£€éªŒ
 vif(fit)
-# Òì³£µã¼ìÑé# ¸ß¸Ü¸ËÖµµã£¨Ã±×Ó¾ØÕó£©
+# å¼‚å¸¸ç‚¹æ£€éªŒ# é«˜æ æ†å€¼ç‚¹ï¼ˆå¸½å­çŸ©é˜µï¼‰
 leverage <- hatvalues(fit)
 head(leverage)
-# dffitsÖµ
+# dffitså€¼
 Dffits <- dffits(fit)
 head(Dffits)
-# Ñ§Éú»¯²Ğ²î
+# å­¦ç”ŸåŒ–æ®‹å·®
 resid_stu <- Dffits/sqrt(leverage/(1-leverage))
 head(resid_stu)
-# cook¾àÀë
+# cookè·ç¦»
 cook <- cooks.distance(fit)
-# ¼ÆËãÒì³£ÖµÊıÁ¿µÄ±ÈÀı
+# è®¡ç®—å¼‚å¸¸å€¼æ•°é‡çš„æ¯”ä¾‹
 outliers_ratio = sum(abs(ccpp_outliers$resid_stu)>2)/nrow(ccpp_outliers)
 outliers_ratio
 
-# É¾³ıÒì³£Öµ
+# åˆ é™¤å¼‚å¸¸å€¼
 ccpp_outliers = ccpp_outliers[abs(ccpp_outliers$resid_stu)<=2,]
 head(cook)
-# covratioÖµ
+# covratioå€¼
 Covratio <- covratio(fit)
 head(Covratio)
-# ½«ÉÏÃæµÄ¼¸ÖÖÒì³£Öµ¼ìÑéÍ³¼ÆÁ¿ÓëÔ­Ê¼Êı¾İ¼¯ºÏ²¢
+# å°†ä¸Šé¢çš„å‡ ç§å¼‚å¸¸å€¼æ£€éªŒç»Ÿè®¡é‡ä¸åŸå§‹æ•°æ®é›†åˆå¹¶
 ccpp_outliers <- cbind(ccpp, data.frame(leverage, Dffits, resid_stu, cook, Covratio))
 head(ccpp_outliers)
 
-# ÖØĞÂ½¨Ä£
+# é‡æ–°å»ºæ¨¡
 fit2 = lm(PE~AT+V+AP,data = ccpp_outliers)
 summary(fit2)
 
-# ¼ÆËãÄ£ĞÍµÄRMSEÖµ
+# è®¡ç®—æ¨¡å‹çš„RMSEå€¼
 RMSE2 = sqrt(mean(fit2$residuals**2))
 RMSE2
 
-# ÕıÌ¬ĞÔ¼ìÑé#»æÖÆÖ±·½Í¼
+# æ­£æ€æ€§æ£€éªŒ#ç»˜åˆ¶ç›´æ–¹å›¾
 hist(x = fit2$residuals, freq = FALSE,
-     breaks = 100, main = 'xµÄÖ±·½Í¼',
-     ylab = 'ºËÃÜ¶ÈÖµ',xlab = NULL, col = 'steelblue')
+     breaks = 100, main = 'xçš„ç›´æ–¹å›¾',
+     ylab = 'æ ¸å¯†åº¦å€¼',xlab = NULL, col = 'steelblue')
 
-#Ìí¼ÓºËÃÜ¶ÈÍ¼
+#æ·»åŠ æ ¸å¯†åº¦å›¾
 lines(density(fit2$residuals), col = 'red', lty = 1, lwd = 2)
 
-#Ìí¼ÓÕıÌ¬·Ö²¼Í¼
+#æ·»åŠ æ­£æ€åˆ†å¸ƒå›¾
 x <- fit2$residuals[order(fit2$residuals)]
 lines(x, dnorm(x, mean(x), sd(x)),
       col = 'blue', lty = 2, lwd = 2.5)
 
-#Ìí¼ÓÍ¼Àı
-legend('topright',legend = c('ºËÃÜ¶ÈÇúÏß','ÕıÌ¬·Ö²¼ÇúÏß'),
+#æ·»åŠ å›¾ä¾‹
+legend('topright',legend = c('æ ¸å¯†åº¦æ›²çº¿','æ­£æ€åˆ†å¸ƒæ›²çº¿'),
        col = c('red','blue'), lty = c(1,2),
        lwd = c(2,2.5), bty = 'n')
 
-# PPÍ¼
+# PPå›¾
 real_dist <- ppoints(fit2$residuals)
 theory_dist <- pnorm(fit2$residuals, mean = mean(fit2$residuals), 
                      sd = sd(fit2$residuals))
 
-# »æÍ¼
+# ç»˜å›¾
 plot(sort(theory_dist), real_dist, col = 'steelblue', 
-     pch = 20, main = 'PPÍ¼', xlab = 'ÀíÂÛÕıÌ¬·Ö²¼ÀÛ¼Æ¸ÅÂÊ', 
-     ylab = 'Êµ¼ÊÀÛ¼Æ¸ÅÂÊ')
+     pch = 20, main = 'PPå›¾', xlab = 'ç†è®ºæ­£æ€åˆ†å¸ƒç´¯è®¡æ¦‚ç‡', 
+     ylab = 'å®é™…ç´¯è®¡æ¦‚ç‡')
 
-# Ìí¼Ó¶Ô½ÇÏß×÷Îª²Î¿¼Ïß
+# æ·»åŠ å¯¹è§’çº¿ä½œä¸ºå‚è€ƒçº¿
 abline(a = 0,b = 1, col = 'red', lwd = 2)
 
-# QQÍ¼
+# QQå›¾
 qqnorm(fit2$residuals, col = 'steelblue', pch = 20,
-       main = 'QQÍ¼', xlab = 'ÀíÂÛ·ÖÎ»Êı', 
-       ylab = 'Êµ¼Ê·ÖÎ»Êı')
-# »æÖÆ²Î¿¼Ïß
+       main = 'QQå›¾', xlab = 'ç†è®ºåˆ†ä½æ•°', 
+       ylab = 'å®é™…åˆ†ä½æ•°')
+# ç»˜åˆ¶å‚è€ƒçº¿
 qqline(fit2$residuals, col = 'red', lwd = 2)
-# shapiroÕıÌ¬ĞÔ¼ìÑé
+# shapiroæ­£æ€æ€§æ£€éªŒ
 
 # shapiro <- shapiro.test(fit2$residuals)
 # shapiro
 
-# K-SÕıÌ¬ĞÔ¼ìÑé
+# K-Sæ­£æ€æ€§æ£€éªŒ
 ks <- ks.test(fit2$residuals, 'pnorm', 
               mean = mean(fit2$residuals), 
               sd = sd(fit2$residuals))
